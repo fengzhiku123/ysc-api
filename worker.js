@@ -13,7 +13,7 @@ const SOURCES_URL = "https://raw.githubusercontent.com/fengzhiku123/ysc-api/main
 const UA = "okhttp/3.12.13";
 const STALE_MS = 36 * 3600 * 1000; // 超过36小时未刷新则请求时顺带刷新
 
-// ---- 精简版裁剪规则(仅作用于 / 默认端点, /full 不裁) ----
+// ---- 精简版裁剪规则(仅作用于 / 默认端点, /full 忠实输出原版不裁) ----
 // 1) 黑名单: 名称含这些关键词的站点直接裁掉(冷门分类)
 const CUT_KEYWORDS = [
   "听书", "KTV", "电台", "戏曲", "舞曲", "跳舞", "音乐", "短剧", "漫短", "漫剧",
@@ -25,9 +25,20 @@ const KEEP_4K = ["花卷", "玩偶", "原盘", "蜗牛", "盘库"];
 // 3) 盘搜/聚合搜索类只留这两个
 const KEEP_SEARCH = ["盘搜", "卡卡"];
 
+// 剥掉前导 // 注释行(本生态常见格式), 返回干净JSON文本
+function stripCommentLines(text) {
+  let t = text.replace(/^\uFEFF/, "").trim();
+  while (t.startsWith("//")) {
+    const nl = t.indexOf("\n");
+    if (nl === -1) return "";
+    t = t.slice(nl + 1).trim();
+  }
+  return t;
+}
+
 function slimConfig(text) {
   try {
-    const cfg = JSON.parse(text.replace(/^\uFEFF/, "").trim());
+    const cfg = JSON.parse(stripCommentLines(text));
     if (!Array.isArray(cfg.sites)) return text;
     let seenDouban = false;
     const sites = cfg.sites.filter((s) => {
@@ -46,24 +57,27 @@ function slimConfig(text) {
       return true;
     });
     cfg.sites = sites;
+    // 提速: 剔除境外DoH(Google/Cloudflare等在国内不可达, 会拖慢APP每个域名的解析),
+    // 让影视仓回退到系统DNS(国内最快); /full 保留原配置不受影响
+    delete cfg.doh;
     return JSON.stringify(cfg);
   } catch (e) {
     return text; // 解析失败(lintech加密格式等)则原样返回
   }
 }
 
-// 兜底源池: 仓库 sources.json 拉取失败时使用(与仓库保持一致)
+// 兜底源池: 仓库 sources.json 拉取失败时使用(与仓库定稿10源完全一致)
 const FALLBACK_SOURCES = [
   { name: "王二小", url: "http://new.王二小放牛娃.top", priority: 1 },
   { name: "肥猫", url: "http://肥猫.net/", priority: 2 },
   { name: "欧歌", url: "https://play.iptv365.org/欧歌/api.json", priority: 3 },
-  { name: "摸鱼儿", url: "http://我不是.摸鱼儿.top", priority: 4 },
-  { name: "老刘备", url: "https://raw.liucn.cc/box/m.json", priority: 5 },
-  { name: "嗷呜", url: "https://9763.kstore.vip/aowu.json", priority: 6 },
-  { name: "小米", url: "https://raw.githubusercontent.com/ggrrttyyiii/CatVodSpider/main/json/demo.json", priority: 7 },
-  { name: "南风", url: "https://raw.githubusercontent.com/yoursmile66/TVBox/main/XC.json", priority: 8 },
-  { name: "小虎斑", url: "http://hb.小虎斑.site:25252/仅供测试", priority: 9 },
-  { name: "饭太硬", url: "http://www.饭太硬.net/tv", priority: 10 },
+  { name: "老刘备", url: "https://raw.liucn.cc/box/m.json", priority: 4 },
+  { name: "嗷呜", url: "https://9763.kstore.vip/aowu.json", priority: 5 },
+  { name: "小米", url: "https://raw.githubusercontent.com/ggrrttyyiii/CatVodSpider/main/json/demo.json", priority: 6 },
+  { name: "南风", url: "https://raw.githubusercontent.com/yoursmile66/TVBox/main/XC.json", priority: 7 },
+  { name: "天天开心", url: "https://raw.githubusercontent.com/tmoom/ttkx/main/t.json", priority: 8 },
+  { name: "老刘备用", url: "https://raw.githubusercontent.com/liu673cn/box/main/m.json", priority: 9 },
+  { name: "摸鱼儿", url: "http://我不是.摸鱼儿.top", priority: 10 },
 ];
 
 function fetchWithTimeout(url, ms, headers) {
@@ -75,13 +89,7 @@ function fetchWithTimeout(url, ms, headers) {
 
 function validateConfig(text) {
   if (!text) return "empty";
-  let t = text.replace(/^\uFEFF/, "").trim();
-  // 本生态常见格式: 前置若干行 // 注释, 之后才是 {JSON }(影视仓原生兼容)
-  while (t.startsWith("//")) {
-    const nl = t.indexOf("\n");
-    if (nl === -1) return "not-config";
-    t = t.slice(nl + 1).trim();
-  }
+  const t = stripCommentLines(text);
   if (t.startsWith("{")) {
     if (t.length < 800) return "too-small";
     if (!t.includes('"sites"')) return "no-sites";
@@ -203,6 +211,6 @@ export default {
       if (p === "/full") return raw(cfg);
       return raw(slimConfig(cfg));
     }
-    return jres({ error: "not found", endpoints: ["/", "/full(完整版)", "/status", "/refresh", "/s/0-9"] }, 404);
+    return jres({ error: "not found", endpoints: ["/(精简版)", "/full(完整版)", "/status", "/refresh", "/s/0-9"] }, 404);
   },
 };
