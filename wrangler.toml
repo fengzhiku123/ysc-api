@@ -1,0 +1,14 @@
+﻿name = "ysc-api"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[triggers]
+crons = ["0 */4 * * *"]
+
+[[kv_namespaces]]
+binding = "KV"
+id = "DEPLOY时由API创建后回填"
+
+routes = [
+  { pattern = "ysc.tengxuntaobao.win", custom_domain = true }
+]
