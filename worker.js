@@ -1,6 +1,6 @@
 // ============================================================
 // ysc-api · 影视仓/TVBox 自更新接口聚合服务
-// 架构: 每4小时定时采集10个上游接口 -> 校验 -> 按优先级选优存KV
+// 架构: 每周一凌晨3点(北京)定时采集10个上游接口 -> 校验 -> 按优先级选优存KV
 //       用户地址永远不变, 内容永远是"当前最优可用接口"
 // 端点: /          当前最优接口·精简版(默认, 加载快)
 //       /full      当前最优接口·完整版(想要全部站点时用)
@@ -13,7 +13,7 @@
 const SOURCES_URL = "https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/sources.json";
 const CATPAW_BASE = "https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/catpaw/";
 const UA = "okhttp/3.12.13";
-const STALE_MS = 36 * 3600 * 1000; // 超过36小时未刷新则请求时顺带刷新
+const STALE_MS = 180 * 3600 * 1000; // 超过7.5天未刷新(周更新+冗余)则请求时顺带刷新兜底
 
 // ---- 精简版裁剪规则(仅作用于 / 默认端点, /full 忠实输出原版不裁) ----
 // 1) 黑名单: 名称含这些关键词的站点直接裁掉(冷门分类)

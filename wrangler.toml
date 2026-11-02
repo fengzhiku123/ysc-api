@@ -8,7 +8,7 @@ routes = [
 ]
 
 [triggers]
-crons = ["0 */4 * * *"]
+crons = ["0 19 * * SUN"]
 
 [[kv_namespaces]]
 binding = "KV"
