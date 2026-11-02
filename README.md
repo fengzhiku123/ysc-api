@@ -1,13 +1,14 @@
-﻿# ysc-api · 影视仓/TVBox 永久自更新接口
+# ysc-api · 影视仓/TVBox 永久自更新接口
 
 ## 主接口地址(在影视仓「配置地址」粘贴这个)
 
     https://ysc.tengxuntaobao.win/
 
-这个地址**永久不变**。内容每 4 小时自动更新:
+这个地址**永久不变**。内容**每周一凌晨 3:00(北京时间)自动更新**:
 Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性 ->
 按优先级选"当前最优可用"的存入 KV 并对外提供。某个源挂了自动切换
-到下一个可用源, 无需人工干预。
+到下一个可用源, 无需人工干预。源内容异常时可访问
+`https://ysc.tengxuntaobao.win/refresh` 立即重采。
 
 ## 端点说明
 
@@ -57,21 +58,15 @@ Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性
 
 ## 如何增删源?
 
-编辑本仓库 `sources.json` 即可, 下一轮采集(最长4小时)自动生效,
-无需重新部署 Worker。raw 有约5分钟缓存, 急的话访问一次
-`https://ysc.tengxuntaobao.win/refresh` 并等2分钟再试。
-
-## 备用访问地址(万一主域名出问题)
-
-- GitHub 镜像(Actions 每6小时自动同步精简版): `https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
-- 加速镜像: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
-- 各源直通: `https://ysc.tengxuntaobao.win/s/0` ~ `/s/9`
+编辑本仓库 `sources.json` 即可, 下一轮每周采集时自动生效
+(等不及就访问一次 `https://ysc.tengxuntaobao.win/refresh`),
+无需重新部署 Worker。
 
 ## CatPawOpen(猫爪)客户端专用
 
 影视仓/TVBox 的源(jar蜘蛛)与猫爪的源(nodejs蜘蛛)是两套不同运行时,
 内容无法互通。本项目为猫爪客户端提供了**官方框架最新构建**的源包,
-经本域名代理托管, 由 Actions 每日自动跟随官方仓库重建:
+经本域名代理托管:
 
     https://ysc.tengxuntaobao.win/catpaw/index.js
 
@@ -79,9 +74,25 @@ Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性
 `.../catpaw/index.js.md5` 自动同路径提供)。此端点与影视仓端点完全
 独立, 互不影响速度。
 
+## 备用访问地址(万一主域名出问题)
+
+- GitHub 镜像(Actions 每周一凌晨同步精简版): `https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
+- 加速镜像: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
+- 各源直通: `https://ysc.tengxuntaobao.win/s/0` ~ `/s/9`
+- 猫爪源包备用: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/catpaw/index.js`
+
+## 维护节奏(2026-11-03 起为每周一次, 均为北京时间周一凌晨)
+
+| 时间 | 任务 | 说明 |
+| --- | --- | --- |
+| 周一 03:00 | Worker 定时采集 | 刷新影视仓源(KV), cron `0 19 * * SUN`(UTC) |
+| 周一 03:30 | Actions mirror | 同步精简版到仓库 tvbox.json |
+| 周一 03:40 | Actions rebuild-catpaw | 拉官方最新代码重建猫爪源包 |
+| 每天 09:00 | TeleAgent「接口巡检」 | 只做健康体检(一句话汇报), 不做更新 |
+
 ## 部署信息
 
 - Cloudflare Worker: `ysc-api`, 绑定自定义域名 ysc.tengxuntaobao.win
 - KV 命名空间: a9654cd9fbd44c14bb1f98e8279d97e3
-- 定时采集: `0 */4 * * *` (每4小时, UTC)
-- 免费额度用量: 每天最多6次定时采集 + 少量读取, 远低于免费上限
+- 定时采集: `0 19 * * SUN` (每周一凌晨3点, 北京时间; 超过7.5天未刷新时请求会自动兜底重采)
+- 免费额度用量: 每周7次定时采集级操作 + 少量读取, 远低于免费上限
