@@ -1,14 +1,15 @@
 ﻿name = "ysc-api"
+account_id = "7755bf43bc2ebc95cc5ab6ea50d7063e"
 main = "worker.js"
 compatibility_date = "2026-10-01"
+
+routes = [
+  { pattern = "ysc.tengxuntaobao.win", custom_domain = true }
+]
 
 [triggers]
 crons = ["0 */4 * * *"]
 
 [[kv_namespaces]]
 binding = "KV"
-id = "DEPLOY时由API创建后回填"
-
-routes = [
-  { pattern = "ysc.tengxuntaobao.win", custom_domain = true }
-]
+id = "a9654cd9fbd44c14bb1f98e8279d97e3"
