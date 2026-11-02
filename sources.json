@@ -1,17 +1,12 @@
 ﻿[
-  { "name": "王二小", "url": "http://new.王二小放牛娃.top", "priority": 1, "note": "Last-Modified 实时更新(昨日)" },
-  { "name": "肥猫", "url": "http://肥猫.net/", "priority": 2, "note": "Last-Modified 实时更新(昨日)" },
-  { "name": "欧歌", "url": "https://play.iptv365.org/欧歌/api.json", "priority": 3, "note": "106站点 10月榜在列" },
-  { "name": "摸鱼儿", "url": "http://我不是.摸鱼儿.top", "priority": 4, "note": "103站点 qiqiv/159e双榜在列" },
-  { "name": "老刘备", "url": "https://raw.liucn.cc/box/m.json", "priority": 5, "note": "234源大聚合 10月榜在列" },
-  { "name": "嗷呜", "url": "https://9763.kstore.vip/aowu.json", "priority": 6, "note": "79源 qiqiv清单在列" },
-  { "name": "小米", "url": "https://raw.githubusercontent.com/ggrrttyyiii/CatVodSpider/main/json/demo.json", "priority": 7, "note": "GitHub经典爬虫仓长期维护" },
-  { "name": "南风", "url": "https://raw.githubusercontent.com/yoursmile66/TVBox/main/XC.json", "priority": 8, "note": "254星/1531提交仓库 10-29刚推送 lintech加密" },
-  { "name": "小虎斑", "url": "http://hb.小虎斑.site:25252/仅供测试", "priority": 9, "note": "lintech加密 qiqiv清单在列" },
-  { "name": "饭太硬", "url": "http://www.饭太硬.net/tv", "priority": 10, "note": "每日更新但反爬严格 Worker自动校验" },
-  { "name": "天天开心", "url": "https://raw.githubusercontent.com/tmoom/ttkx/main/t.json", "priority": 11, "note": "替补:天天开心GitHub镜像" },
-  { "name": "老刘GH", "url": "https://raw.githubusercontent.com/liu673cn/box/main/m.json", "priority": 12, "note": "替补:老刘GitHub镜像" },
-  { "name": "王二小tvbox线", "url": "http://tvbox.xn--4kq62z5rby2qupq9ub.top/", "priority": 13, "note": "替补:王二小tvbox子域 63源" },
-  { "name": "俊哥", "url": "http://home.jundie.top:81/top98.json", "priority": 14, "note": "替补:24源 Last-Modified 2025-04" },
-  { "name": "小盒子4K", "url": "http://xhztv.top/4k.json", "priority": 15, "note": "替补:4K仓 Last-Modified 2024-02" }
+  { "name": "王二小", "url": "http://new.王二小放牛娃.top", "priority": 1, "note": "Last-Modified 昨日刚更新 99源" },
+  { "name": "肥猫", "url": "http://肥猫.net/", "priority": 2, "note": "Last-Modified 昨日刚更新" },
+  { "name": "欧歌", "url": "https://play.iptv365.org/欧歌/api.json", "priority": 3, "note": "106源 2026年10月榜在列" },
+  { "name": "老刘备", "url": "https://raw.liucn.cc/box/m.json", "priority": 4, "note": "234源大聚合 2026年10月榜在列" },
+  { "name": "嗷呜", "url": "https://9763.kstore.vip/aowu.json", "priority": 5, "note": "79源 qiqiv策划清单在列" },
+  { "name": "小米", "url": "https://raw.githubusercontent.com/ggrrttyyiii/CatVodSpider/main/json/demo.json", "priority": 6, "note": "GitHub经典爬虫仓官方demo" },
+  { "name": "南风", "url": "https://raw.githubusercontent.com/yoursmile66/TVBox/main/XC.json", "priority": 7, "note": "254星/1531提交仓库 lintech加密格式" },
+  { "name": "天天开心", "url": "https://raw.githubusercontent.com/tmoom/ttkx/main/t.json", "priority": 8, "note": "天天开心GitHub镜像 37KB" },
+  { "name": "老刘备用", "url": "https://raw.githubusercontent.com/liu673cn/box/main/m.json", "priority": 9, "note": "老刘GitHub镜像(与老刘备双通道冗余)" },
+  { "name": "摸鱼儿", "url": "http://我不是.摸鱼儿.top", "priority": 10, "note": "103源 边缘暂被WAF拦(456) 持续监测" }
 ]

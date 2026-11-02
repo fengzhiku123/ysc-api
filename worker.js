@@ -35,7 +35,13 @@ function fetchWithTimeout(url, ms, headers) {
 
 function validateConfig(text) {
   if (!text) return "empty";
-  const t = text.replace(/^\uFEFF/, "").trim();
+  let t = text.replace(/^\uFEFF/, "").trim();
+  // 本生态常见格式: 前置若干行 // 注释, 之后才是 {JSON }(影视仓原生兼容)
+  while (t.startsWith("//")) {
+    const nl = t.indexOf("\n");
+    if (nl === -1) return "not-config";
+    t = t.slice(nl + 1).trim();
+  }
   if (t.startsWith("{")) {
     if (t.length < 800) return "too-small";
     if (!t.includes('"sites"')) return "no-sites";
