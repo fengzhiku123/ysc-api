@@ -1,4 +1,4 @@
-# ysc-api · 影视仓/TVBox 永久自更新接口
+﻿# ysc-api · 影视仓/TVBox 永久自更新接口
 
 ## 主接口地址(在影视仓「配置地址」粘贴这个)
 
@@ -66,6 +66,18 @@ Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性
 - GitHub 镜像(Actions 每6小时自动同步精简版): `https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
 - 加速镜像: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
 - 各源直通: `https://ysc.tengxuntaobao.win/s/0` ~ `/s/9`
+
+## CatPawOpen(猫爪)客户端专用
+
+影视仓/TVBox 的源(jar蜘蛛)与猫爪的源(nodejs蜘蛛)是两套不同运行时,
+内容无法互通。本项目为猫爪客户端提供了**官方框架最新构建**的源包,
+经本域名代理托管, 由 Actions 每日自动跟随官方仓库重建:
+
+    https://ysc.tengxuntaobao.win/catpaw/index.js
+
+在 CatPawOpen 客户端「添加源」时粘贴上面地址即可(md5 校验地址
+`.../catpaw/index.js.md5` 自动同路径提供)。此端点与影视仓端点完全
+独立, 互不影响速度。
 
 ## 部署信息
 
