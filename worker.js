@@ -19,11 +19,14 @@ const STALE_MS = 180 * 3600 * 1000; // 超过7.5天未刷新(周更新+冗余)�
 
 // ---- 精简版裁剪规则(仅作用于 / 默认端点, /full 忠实输出原版不裁) ----
 // 1) 黑名单: 名称含这些关键词的站点直接裁掉(冷门分类)
+//    注: 功能频道(配置中心/我的网盘等)白名单优先, 不受黑名单影响
 const CUT_KEYWORDS = [
   "听书", "KTV", "电台", "戏曲", "舞曲", "跳舞", "音乐", "短剧", "漫短", "漫剧",
   "体育", "WWE", "课堂", "教育", "歌曲", "合集", "Alist", "AList", "WebDav",
-  "WebDAV", "115", "Emby", "DIY", "配置┃", "我的┃",
+  "WebDAV", "115", "Emby", "DIY",
 ];
+// 2) 功能频道白名单(key匹配, 无条件保留): 配置中心/我的网盘是配置夸克百度等网盘账号的地方
+const KEEP_KEYS = ["Wexconfig", "MyPan"];
 // 2) 4K网盘类只保留这几个主力(其余"4K"字样站点裁掉)
 const KEEP_4K = ["花卷", "玩偶", "原盘", "蜗牛", "盘库"];
 // 3) 盘搜/聚合搜索类只留这两个
@@ -48,6 +51,8 @@ function slimConfig(text) {
     const sites = cfg.sites.filter((s) => {
       const name = String(s.name || "");
       const key = String(s.key || "");
+      // 功能频道白名单: 配置中心/我的网盘等, 无条件保留
+      if (KEEP_KEYS.includes(key)) return true;
       // 豆瓣首页推荐: 只留第一个(去重)
       if (/douban/i.test(key)) { if (seenDouban) return false; seenDouban = true; return true; }
       // 黑名单
@@ -61,6 +66,14 @@ function slimConfig(text) {
       return true;
     });
     cfg.sites = sites;
+    // 提速: 剔除境外DoH(国内不可达, 拖慢域名解析)
+    delete cfg.doh;
+    // 提速: 剔除proxy转发规则(影视仓启动时会校验这些中转, 而中转域名在用户网络DNS不可达,
+    // 导致"先检查代理再加载"; 剔除后咪咕等直播流走直连)
+    if (Array.isArray(cfg.rules)) cfg.rules = cfg.rules.filter((r) => r && r.name !== "proxy");
+    // 提速: 剔除壁纸API(随机二次元大图200-800KB且不稳定)与已失效的预签名台标死链
+    delete cfg.wallpaper;
+    delete cfg.logo;
     // 直播源替换: 精简版的 lives 指向我们自己的 /live(本机网络实测优选), /full 保留上游原版
     cfg.lives = [{ name: "直播", type: 0, url: "https://ysc.tengxuntaobao.win/live" }];
     // 提速: 剔除境外DoH(Google/Cloudflare等在国内不可达, 会拖慢APP每个域名的解析),
