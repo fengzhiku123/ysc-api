@@ -68,17 +68,13 @@ function slimConfig(text) {
     cfg.sites = sites;
     // 提速: 剔除境外DoH(国内不可达, 拖慢域名解析)
     delete cfg.doh;
-    // 提速: 剔除proxy转发规则(影视仓启动时会校验这些中转, 而中转域名在用户网络DNS不可达,
-    // 导致"先检查代理再加载"; 剔除后咪咕等直播流走直连)
-    if (Array.isArray(cfg.rules)) cfg.rules = cfg.rules.filter((r) => r && r.name !== "proxy");
     // 提速: 剔除壁纸API(随机二次元大图200-800KB且不稳定)与已失效的预签名台标死链
     delete cfg.wallpaper;
     delete cfg.logo;
     // 直播源替换: 精简版的 lives 指向我们自己的 /live(本机网络实测优选), /full 保留上游原版
     cfg.lives = [{ name: "直播", type: 0, url: "https://ysc.tengxuntaobao.win/live" }];
-    // 提速: 剔除境外DoH(Google/Cloudflare等在国内不可达, 会拖慢APP每个域名的解析),
-    // 让影视仓回退到系统DNS(国内最快); /full 保留原配置不受影响
-    delete cfg.doh;
+    // 注: rules(proxy转发/Go代理路由)完整保留上游原版——配置中心的内容依赖它
+    // (需从GitHub拉取配置界面数据), 海外CDN线路也依赖裸域名条目走APP内置Go代理
     return JSON.stringify(cfg);
   } catch (e) {
     return text; // 解析失败(lintech加密格式等)则原样返回
@@ -206,18 +202,26 @@ export default {
     // 直播源(Guovin引擎每周生成, 酒店源+订阅源全量实测速度排序后的IPv4结果)
     const LIVE_FILES = { "/live": "live/live.m3u", "/live.m3u": "live/live.m3u", "/live.md5": "live/live.m3u.md5" };
     if (LIVE_FILES[p]) {
+      // 边缘缓存: 启动/直播页重复拉取免回源(原1.5~3.6秒, 命中后大幅提速)
+      const cache = caches.default;
+      if (request.method === "GET") {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+      }
       try {
         const r = await fetchWithTimeout(REPO_RAW_BASE + LIVE_FILES[p], 60000);
         if (!r.ok) return jres({ error: "live upstream HTTP " + r.status }, 502);
         const buf = await r.arrayBuffer();
         const ct = p === "/live.md5" ? "text/plain; charset=utf-8" : "application/x-mpegurl; charset=utf-8";
-        return new Response(buf, {
+        const resp = new Response(buf, {
           headers: {
             "content-type": ct,
             "access-control-allow-origin": "*",
             "cache-control": "public, max-age=1800",
           },
         });
+        if (request.method === "GET") ctx.waitUntil(cache.put(request, resp.clone()));
+        return resp;
       } catch (e) {
         return jres({ error: String((e && e.message) || e).slice(0, 80) }, 502);
       }
@@ -252,6 +256,12 @@ export default {
       return r.ok ? raw(r.text) : jres({ error: r.err, name: r.name }, 502);
     }
     if (p === "/" || p === "/index.html" || p === "/tv" || p === "/json" || p === "/full" || p === "/lite") {
+      // 边缘缓存: app每次启动拉配置时命中缓存免回源KV/上游(缓存期5分钟, 与max-age一致)
+      const cache = caches.default;
+      if (request.method === "GET") {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+      }
       let cfg = null, meta = null;
       try {
         cfg = await env.KV.get("config");
@@ -267,8 +277,11 @@ export default {
         return jres({ error: "所有源暂时不可用, 请稍后重试; 可访问 /status 查看详情, 或用 /s/0~/s/9 直连各源" }, 503);
       }
       // /full 输出完整版; 其余(/ 等)输出精简版(加载快)
-      if (p === "/full") return raw(cfg);
-      return raw(slimConfig(cfg));
+      const finalResp = p === "/full" ? raw(cfg) : raw(slimConfig(cfg));
+      if (request.method === "GET") {
+        ctx.waitUntil(cache.put(request, finalResp.clone()));
+      }
+      return finalResp;
     }
     return jres({ error: "not found", endpoints: ["/(精简版)", "/full(完整版)", "/live(直播源)", "/status", "/refresh", "/s/0-9", "/catpaw/*(猫爪主源)", "/catpaw-official/*(猫爪备用源)" ] }, 404);
   },
