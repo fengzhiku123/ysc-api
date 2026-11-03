@@ -61,6 +61,8 @@ function slimConfig(text) {
       return true;
     });
     cfg.sites = sites;
+    // 直播源替换: 精简版的 lives 指向我们自己的 /live(本机网络实测优选), /full 保留上游原版
+    cfg.lives = [{ name: "直播", type: 0, url: "https://ysc.tengxuntaobao.win/live" }];
     // 提速: 剔除境外DoH(Google/Cloudflare等在国内不可达, 会拖慢APP每个域名的解析),
     // 让影视仓回退到系统DNS(国内最快); /full 保留原配置不受影响
     delete cfg.doh;
@@ -188,6 +190,25 @@ export default {
       const r = await refresh(env);
       return jres({ refreshed: true, winner: r.meta.winner, okCount: r.meta.okCount });
     }
+    // 直播源(Guovin引擎每周生成, 酒店源+订阅源全量实测速度排序后的IPv4结果)
+    const LIVE_FILES = { "/live": "live/live.m3u", "/live.m3u": "live/live.m3u", "/live.md5": "live/live.m3u.md5" };
+    if (LIVE_FILES[p]) {
+      try {
+        const r = await fetchWithTimeout(REPO_RAW_BASE + LIVE_FILES[p], 60000);
+        if (!r.ok) return jres({ error: "live upstream HTTP " + r.status }, 502);
+        const buf = await r.arrayBuffer();
+        const ct = p === "/live.md5" ? "text/plain; charset=utf-8" : "application/x-mpegurl; charset=utf-8";
+        return new Response(buf, {
+          headers: {
+            "content-type": ct,
+            "access-control-allow-origin": "*",
+            "cache-control": "public, max-age=1800",
+          },
+        });
+      } catch (e) {
+        return jres({ error: String((e && e.message) || e).slice(0, 80) }, 502);
+      }
+    }
     // CatPawOpen(猫爪)客户端: 主源=社区kstore聚合包, 备用=官方框架构建包
     const cpKey = Object.keys(CATPAW_DIRS).find((k) => p.startsWith(k));
     if (cpKey) {
@@ -236,6 +257,6 @@ export default {
       if (p === "/full") return raw(cfg);
       return raw(slimConfig(cfg));
     }
-    return jres({ error: "not found", endpoints: ["/(精简版)", "/full(完整版)", "/status", "/refresh", "/s/0-9", "/catpaw/*(猫爪主源)", "/catpaw-official/*(猫爪备用源)" ] }, 404);
+    return jres({ error: "not found", endpoints: ["/(精简版)", "/full(完整版)", "/live(直播源)", "/status", "/refresh", "/s/0-9", "/catpaw/*(猫爪主源)", "/catpaw-official/*(猫爪备用源)" ] }, 404);
   },
 };
