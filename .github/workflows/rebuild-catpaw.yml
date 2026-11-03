@@ -21,13 +21,13 @@ jobs:
           cd /tmp/catpaw/CatPawOpen-main/nodejs
           npm i --no-audit --no-fund --registry=https://registry.npmmirror.com
           npm run build
-          mkdir -p "$GITHUB_WORKSPACE/catpaw"
-          cp dist/index.js dist/index.js.md5 dist/index.config.js dist/index.config.js.md5 "$GITHUB_WORKSPACE/catpaw/"
+          mkdir -p "$GITHUB_WORKSPACE/catpaw-official"
+          cp dist/index.js dist/index.js.md5 dist/index.config.js dist/index.config.js.md5 "$GITHUB_WORKSPACE/catpaw-official/"
       - name: Commit if changed
         run: |
           git config user.name "ysc-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add catpaw/
+          git add catpaw-official/
           git diff --cached --quiet && { echo 'no changes'; exit 0; }
           git commit -m "catpaw: rebuild $(date -u +'%F %T')"
           git push
