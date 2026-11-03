@@ -65,21 +65,27 @@ Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性
 ## CatPawOpen(猫爪)客户端专用
 
 影视仓/TVBox 的源(jar蜘蛛)与猫爪的源(nodejs蜘蛛)是两套不同运行时,
-内容无法互通。本项目为猫爪客户端提供了**官方框架最新构建**的源包,
-经本域名代理托管:
+内容无法互通。猫爪采用「主源+备用源」双包，都经本域名托管：
 
-    https://ysc.tengxuntaobao.win/catpaw/index.js
+    https://ysc.tengxuntaobao.win/catpaw/index.js          ← 主源(kstore社区聚合包, 内容最丰富)
+    https://ysc.tengxuntaobao.win/catpaw-official/index.js ← 备用源(官方框架构建包)
 
-在 CatPawOpen 客户端「添加源」时粘贴上面地址即可(md5 校验地址
-`.../catpaw/index.js.md5` 自动同路径提供)。此端点与影视仓端点完全
-独立, 互不影响速度。
+主源内容: 20+网盘资源站(摸鱼儿/玩偶哥哥/多多/虎斑/观影/盘链/雷鲸/
+光雅影院/123盘资源/TG搜等) + 夸克/UC/阿里/百度/115五盘解析 + 豆瓣
++ B站 + 音乐平台(酷狗/酷我/QQ音乐) + 直播 + Emby。
+
+更新机制: kstore上游仅国内可达(CF边缘拉不到)，由 TeleAgent 每周
+定时任务「猫爪源同步」(每周一 04:00)从国内侧拉取最新包并提交到
+本仓库 → /catpaw/index.js.md5 变化 → 猫爪客户端自动感知并重新
+下载，全程无需人工。备用源由 Actions 每周一重建。此端点与影视仓
+端点完全独立, 互不影响速度。
 
 ## 备用访问地址(万一主域名出问题)
 
 - GitHub 镜像(Actions 每周一凌晨同步精简版): `https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
 - 加速镜像: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
 - 各源直通: `https://ysc.tengxuntaobao.win/s/0` ~ `/s/9`
-- 猫爪源包备用: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/catpaw/index.js`
+- 猫爪主源备用: `https://ghfast.top/https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/catpaw/index.js`
 
 ## 维护节奏(2026-11-03 起为每周一次, 均为北京时间周一凌晨)
 
@@ -87,7 +93,8 @@ Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性
 | --- | --- | --- |
 | 周一 03:00 | Worker 定时采集 | 刷新影视仓源(KV), cron `0 19 * * SUN`(UTC) |
 | 周一 03:30 | Actions mirror | 同步精简版到仓库 tvbox.json |
-| 周一 03:40 | Actions rebuild-catpaw | 拉官方最新代码重建猫爪源包 |
+| 周一 03:40 | Actions rebuild-catpaw | 重建猫爪备用源(官方包 → catpaw-official/) |
+| 周一 04:00 | TeleAgent「猫爪源同步」 | 国内侧拉取kstore最新包更新猫爪主源(仓库catpaw/) |
 | 每天 09:00 | TeleAgent「接口巡检」 | 只做健康体检(一句话汇报), 不做更新 |
 
 ## 部署信息
