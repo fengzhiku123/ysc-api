@@ -103,7 +103,33 @@ var index_config_default = {
     cookie: ""
   },
   sites: {
-    list: []
+    list: [
+    {"key":"nodejs_bookaishijie","enable":false},
+    {"key":"nodejs_bookaiyueting","enable":false},
+    {"key":"nodejs_bookhema","enable":false},
+    {"key":"nodejs_bookhongguo","enable":false},
+    {"key":"nodejs_musicailiyuan","enable":false},
+    {"key":"nodejs_bilixiqu","enable":false},
+    {"key":"nodejs_musicaiwy","enable":false},
+    {"key":"nodejs_musicaiqq","enable":false},
+    {"key":"nodejs_musicaikg","enable":false},
+    {"key":"nodejs_musicaikuwoa","enable":false},
+    {"key":"nodejs_musicaikuwo","enable":false},
+    {"key":"nodejs_musicai163","enable":false},
+    {"key":"nodejs_biliych","enable":false},
+    {"key":"nodejs_musicaiqingting","enable":false},
+    {"key":"nodejs_musicaitangdou","enable":false},
+    {"key":"nodejs_musicailunhui","enable":false},
+    {"key":"nodejs_sportaiguazi","enable":false},
+    {"key":"nodejs_sportaikafei","enable":false},
+    {"key":"nodejs_sportaifeiqiu","enable":false},
+    {"key":"nodejs_sportaikanqiutong","enable":false},
+    {"key":"nodejs_sportaikanqiu","enable":false},
+    {"key":"nodejs_sportaiwwe","enable":false},
+    {"key":"nodejs_pan123ziyuan","enable":false},
+    {"key":"nodejs_livetovod","enable":false},
+    {"key":"nodejs_yiyingshi","enable":false}
+  ]
   },
   pans: {
     list: []
