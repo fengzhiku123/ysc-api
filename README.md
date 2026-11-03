@@ -87,6 +87,23 @@ Cloudflare Worker 定时抓取下方 10 个上游接口 -> 逐个校验有效性
 下载，全程无需人工。备用源由 Actions 每周一重建。此端点与影视仓
 端点完全独立, 互不影响速度。
 
+## 直播源(影视仓直播栏目已自动接入)
+
+    https://ysc.tengxuntaobao.win/live      ← m3u(影视仓/DIYP等直接用)
+    https://ysc.tengxuntaobao.win/live.md5  ← 更新校验
+
+由「直播源引擎」(Guovin/iptv-api 25.9k星项目 + 酒店源聚合)生成:
+  · 酒店源: 每次更新从速度测试站拉取 196 个运营商网关节点(联通/电
+    信/移动组播网关, 国内速度天花板), 解析出 ~1800 条候选流;
+  · 订阅源: Guovin官方历史结果 + iptv-org 等聚合清单;
+  · 引擎在本机(=你家网络)全量实测速度后排序, 只保留 IPv4(适配无
+    IPv6网络), 每频道最多5条线路(按速度降序), 不足最小速率的剔除;
+  · 影视仓精简版配置的 lives 已指向本端点(上游王二小自带的两个
+    直播源实测已全部失效), /full 保持上游原版。
+每周一 04:20 定时任务「直播源更新」自动重跑全流程(约15分钟)并
+更新本仓库 live/ 目录, 全程无需人工。想加频道: 编辑引擎的
+config/demo.txt 模板后说一声即可。
+
 ## 备用访问地址(万一主域名出问题)
 
 - GitHub 镜像(Actions 每周一凌晨同步精简版): `https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/tvbox.json`
