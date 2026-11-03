@@ -7,11 +7,13 @@
 //       /status    各源健康状态与当前生效源
 //       /refresh   手动触发一次采集
 //       /s/0~/s/9  直通池内第N个源(备用手动切换)
-//       /catpaw/*  CatPawOpen(猫爪)客户端专用源包代理(仓库catpaw/目录)
+//       /catpaw/*  CatPawOpen(猫爪)客户端主源包代理(仓库catpaw/, 社区kstore聚合包)
+//       /catpaw-official/*  猫爪官方框架构建包(备用, 仓库catpaw-official/)
 // ============================================================
 
 const SOURCES_URL = "https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/sources.json";
-const CATPAW_BASE = "https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/catpaw/";
+const REPO_RAW_BASE = "https://raw.githubusercontent.com/fengzhiku123/ysc-api/main/";
+const CATPAW_DIRS = { "/catpaw/": "catpaw/", "/catpaw-official/": "catpaw-official/" };
 const UA = "okhttp/3.12.13";
 const STALE_MS = 180 * 3600 * 1000; // 超过7.5天未刷新(周更新+冗余)则请求时顺带刷新兜底
 
@@ -186,12 +188,13 @@ export default {
       const r = await refresh(env);
       return jres({ refreshed: true, winner: r.meta.winner, okCount: r.meta.okCount });
     }
-    // CatPawOpen(猫爪)客户端: 源包文件代理(仓库catpaw/目录, 由Actions每日自动重建)
-    if (p.startsWith("/catpaw/")) {
-      const file = url.pathname.slice("/catpaw/".length);
+    // CatPawOpen(猫爪)客户端: 主源=社区kstore聚合包, 备用=官方框架构建包
+    const cpKey = Object.keys(CATPAW_DIRS).find((k) => p.startsWith(k));
+    if (cpKey) {
+      const file = url.pathname.slice(cpKey.length);
       if (!/^[\w.-]+$/.test(file) || file.length > 60) return jres({ error: "bad file name" }, 400);
       try {
-        const r = await fetchWithTimeout(CATPAW_BASE + file, 30000);
+        const r = await fetchWithTimeout(REPO_RAW_BASE + CATPAW_DIRS[cpKey] + file, 60000);
         if (!r.ok) return jres({ error: "upstream HTTP " + r.status, file: file }, 502);
         const buf = await r.arrayBuffer();
         const ct = file.endsWith(".js") ? "application/javascript; charset=utf-8" : "text/plain; charset=utf-8";
@@ -233,6 +236,6 @@ export default {
       if (p === "/full") return raw(cfg);
       return raw(slimConfig(cfg));
     }
-    return jres({ error: "not found", endpoints: ["/(精简版)", "/full(完整版)", "/status", "/refresh", "/s/0-9", "/catpaw/*(猫爪客户端)"] }, 404);
+    return jres({ error: "not found", endpoints: ["/(精简版)", "/full(完整版)", "/status", "/refresh", "/s/0-9", "/catpaw/*(猫爪主源)", "/catpaw-official/*(猫爪备用源)" ] }, 404);
   },
 };
