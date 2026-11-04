@@ -43,6 +43,23 @@ function stripCommentLines(text) {
   return t;
 }
 
+// 站点key规范化+唯一化(FongMi标准底座兼容, 如webtv/OK影视):
+// ① 清理key中的特殊字符(空格/竖线"AppV7 | 大师兄"→"AppV7_大师兄"——部分客户端拿key做索引/文件名, 特殊字符会断)
+// ② 重复key自动加后缀(TVBox系按key做Map索引, 重复会覆盖/报错)
+function normalizeSiteKeys(sites) {
+  if (!Array.isArray(sites)) return sites;
+  const seen = new Set();
+  return sites.map((s) => {
+    let key = String(s.key || "");
+    key = key.replace(/[\s\|\/:*?"<>\[\]()]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || "site";
+    let final = key, i = 2;
+    while (seen.has(final)) final = key + "_" + (i++);
+    seen.add(final);
+    s.key = final;
+    return s;
+  });
+}
+
 function slimConfig(text) {
   try {
     const cfg = JSON.parse(stripCommentLines(text));
@@ -65,7 +82,8 @@ function slimConfig(text) {
       }
       return true;
     });
-    cfg.sites = sites;
+    // 兼容修复: 站点key规范化+唯一化(FongMi底座如webtv按key索引, 特殊字符/重复导致加载失败)
+    cfg.sites = normalizeSiteKeys(sites);
     // 提速: 剔除境外DoH(国内不可达, 拖慢域名解析)
     delete cfg.doh;
     // 提速: 剔除壁纸API(随机二次元大图200-800KB且不稳定)与已失效的预签名台标死链
@@ -276,8 +294,16 @@ export default {
       if (!cfg) {
         return jres({ error: "所有源暂时不可用, 请稍后重试; 可访问 /status 查看详情, 或用 /s/0~/s/9 直连各源" }, 503);
       }
-      // /full 输出完整版; 其余(/ 等)输出精简版(加载快)
-      const finalResp = p === "/full" ? raw(cfg) : raw(slimConfig(cfg));
+      // /full 输出完整版(同样做key规范化+唯一化, 保证FongMi底座兼容); 其余(/ 等)输出精简版(加载快)
+      const fullOut = () => {
+        try {
+          const cfg = JSON.parse(stripCommentLines(cfg0));
+          if (Array.isArray(cfg.sites)) cfg.sites = normalizeSiteKeys(cfg.sites);
+          return raw(JSON.stringify(cfg));
+        } catch (e) { return raw(cfg0); }
+      };
+      const cfg0 = cfg;
+      const finalResp = p === "/full" ? fullOut() : raw(slimConfig(cfg));
       if (request.method === "GET") {
         ctx.waitUntil(cache.put(request, finalResp.clone()));
       }
