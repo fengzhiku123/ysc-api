@@ -218,7 +218,7 @@ export default {
       return jres({ refreshed: true, winner: r.meta.winner, okCount: r.meta.okCount });
     }
     // 直播源(Guovin引擎每周生成, 酒店源+订阅源全量实测速度排序后的IPv4结果)
-    const LIVE_FILES = { "/live": "live/live.m3u", "/live.m3u": "live/live.m3u", "/live.md5": "live/live.m3u.md5" };
+    const LIVE_FILES = { "/live": "live/live.m3u", "/live.m3u": "live/live.m3u", "/live.md5": "live/live.m3u.md5", "/fongmi": "fongmi.json" };
     if (LIVE_FILES[p]) {
       // 边缘缓存: 启动/直播页重复拉取免回源(原1.5~3.6秒, 命中后大幅提速)
       const cache = caches.default;
@@ -230,7 +230,7 @@ export default {
         const r = await fetchWithTimeout(REPO_RAW_BASE + LIVE_FILES[p], 60000);
         if (!r.ok) return jres({ error: "live upstream HTTP " + r.status }, 502);
         const buf = await r.arrayBuffer();
-        const ct = p === "/live.md5" ? "text/plain; charset=utf-8" : "application/x-mpegurl; charset=utf-8";
+        const ct = p === "/live.md5" ? "text/plain; charset=utf-8" : (p === "/fongmi" ? "application/json; charset=utf-8" : "application/x-mpegurl; charset=utf-8");
         const resp = new Response(buf, {
           headers: {
             "content-type": ct,
